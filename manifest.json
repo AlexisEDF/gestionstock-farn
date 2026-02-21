@@ -2,7 +2,7 @@
     "name": "Gestion Stock FARN",
     "short_name": "Gestion STOCK FARN",
     "description": "Application de gestion de stock pour la FARN",
-    "start_url": "./stock.html",
+    "start_url": "./index.html",
     "display": "standalone",
     "background_color": "#f4f7f6",
     "theme_color": "#06387a",
