@@ -1,6 +1,6 @@
 const CACHE_NAME = 'farn-stock-v1';
 const urlsToCache = [
-    './stock.html',
+    './index.html',
     './style.css',
     './script.js',
     './logo-edf.png'
