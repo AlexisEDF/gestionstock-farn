@@ -2,9 +2,7 @@
 // --- 1. BASE DE DONNÉES ET SAUVEGARDE ---
 // ==========================================
 let baseDeStockParDefaut = [
-    { code: "1888", des: "POUBELLE", qty: 100, seuil: 100, loc: "ARMOIRE" },
-    { code: "12", des: "LUNETTES", qty: 12, seuil: 10, loc: "gfg" },
-    { code: "3", des: "OOO", qty: 4, seuil: 5, loc: "NNN" } 
+    
 ];
 
 let baseDeStock = JSON.parse(localStorage.getItem('farn_stock')) || baseDeStockParDefaut;
