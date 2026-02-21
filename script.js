@@ -1,11 +1,8 @@
 // ==========================================
 // --- 1. BASE DE DONNÉES ET SAUVEGARDE ---
 // ==========================================
-let baseDeStockParDefaut = [
-    
-];
 
-let baseDeStock = JSON.parse(localStorage.getItem('farn_stock')) || baseDeStockParDefaut;
+let baseDeStock = JSON.parse(localStorage.getItem('farn_stock')) || [];
 let historiqueSorties = JSON.parse(localStorage.getItem('farn_sorties')) || [];
 let historiqueEntrees = JSON.parse(localStorage.getItem('farn_entrees')) || [];
 
