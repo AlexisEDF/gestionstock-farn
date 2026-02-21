@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock FARN - Web App</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#06387a">
+    <link rel="apple-touch-icon" href="logoapp.png">
+</head>
+<body>
+
+    <h1>📦 Gestion de Stock FARN</h1>
+
+    <div class="dashboard-container">
+        <div class="stat-card">
+            <h3>Total Références</h3>
+            <p id="stat-total">0</p>
+        </div>
+        <div class="stat-card">
+            <h3 style="color: #e53e3e;">Alertes Stock 🔴</h3>
+            <p id="stat-alertes" style="color: #e53e3e;">0</p>
+        </div>
+        <div class="stat-card">
+            <h3 style="color: #38a169;">Mouvements (Aujourd'hui)</h3>
+            <p id="stat-mouvements">0</p>
+        </div>
+    </div>
+
+    <div class="action-menu">
+        <button class="btn btn-sortie" onclick="ouvrirModalSortie()">SORTIE DE STOCK</button>
+        <button class="btn btn-entree" onclick="ouvrirModalEntree()">ENTRÉE DE STOCK</button>
+        <button class="btn btn-nouveau" onclick="ouvrirModalNouveau()">+ NOUVEAU PRODUIT</button>
+        <button class="btn btn-supprimer" onclick="ouvrirModalSupprimer()">- SUPPRIMER PRODUIT</button>
+        <button class="btn btn-commande" onclick="ouvrirModalCommande()">🖨️ BON DE COMMANDE</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Code-barres</th>
+                <th>Désignation</th>
+                <th>Quantité</th>
+                <th>Seuil mini</th>
+                <th>Localisation</th>
+            </tr>
+        </thead>
+        <tbody id="tableau-stock">
+            </tbody>
+    </table>
+
+    <div class="historique-container">
+        <div class="historique-box">
+            <div class="titre-historique">
+                <h3 style="color: #38a169;">🟢 Historique des Entrées</h3>
+                <select id="filtre-entrees-colonne" onchange="afficherHistoriques()" class="select-filtre">
+                    <option value="TOUS">Toutes les colonnes</option>
+                    <option value="1">Colonne 1</option>
+                    <option value="2">Colonne 2</option>
+                    <option value="3">Colonne 3</option>
+                    <option value="4">Colonne 4</option>
+                    <option value="5">Colonne 5</option>
+                </select>
+            </div>
+            <table>
+                <thead>
+                    <tr><th>Date</th><th>Nom</th><th>Col.</th><th>Code</th><th>Produit</th><th>Qté</th><th>Justif.</th></tr>
+                </thead>
+                <tbody id="tableau-entrees"></tbody>
+            </table>
+        </div>
+
+        <div class="historique-box">
+            <div class="titre-historique">
+                <h3 style="color: #e53e3e;">🔴 Historique des Sorties</h3>
+                <select id="filtre-sorties-colonne" onchange="afficherHistoriques()" class="select-filtre">
+                    <option value="TOUS">Toutes les colonnes</option>
+                    <option value="1">Colonne 1</option>
+                    <option value="2">Colonne 2</option>
+                    <option value="3">Colonne 3</option>
+                    <option value="4">Colonne 4</option>
+                    <option value="5">Colonne 5</option>
+                </select>
+            </div>
+            <table>
+                <thead>
+                    <tr><th>Date</th><th>Nom</th><th>Col.</th><th>Code</th><th>Produit</th><th>Qté</th><th>Justif.</th></tr>
+                </thead>
+                <tbody id="tableau-sorties"></tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <div id="modal-sortie" class="modal">
+        <div class="modal-content">
+            <h2>Retrait matériel - FARN</h2>
+            <label>Code-barres du produit (Puis Entrée) :</label>
+            <input type="text" id="sortie-code" placeholder="Scanner ou taper le code...">
+            
+            <div id="info-produit-sortie">
+                <strong style="color: #2b6cb0;">Désignation :</strong> <span id="sortie-designation-texte">-</span><br>
+                <strong style="color: #2b6cb0;">Localisation :</strong> <span id="sortie-localisation-texte">-</span><br>
+                <strong style="color: #2b6cb0;">Stock actuel :</strong> <span id="sortie-stock-texte">-</span>
+            </div>
+            <p id="erreur-produit-sortie">❌ Produit introuvable !</p>
+            
+            <label>Quantité demandée :</label>
+            <input type="number" id="sortie-qty" value="1" min="1">
+            <label>Nom - Prénom :</label>
+            <input type="text" id="sortie-nom" placeholder="Ex: Jean Dupont">
+            <label>Colonne (1 à 5) :</label>
+            <input type="number" id="sortie-colonne" value="1" min="1" max="5">
+            <label>Justification du retrait :</label>
+            <input type="text" id="sortie-justif" placeholder="Ex: Chantier Alpha">
+            
+            <div class="modal-buttons">
+                <button class="btn-valider" onclick="validerSortie()">Valider retrait</button>
+                <button class="btn-fermer" onclick="fermerModalSortie()">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-entree" class="modal">
+        <div class="modal-content" style="border-top-color: #38a169;">
+            <h2 style="color: #38a169;">Entrée de stock matériel - FARN</h2>
+            <label>Code-barres du produit (Puis Entrée) :</label>
+            <input type="text" id="entree-code" placeholder="Scanner ou taper le code...">
+            
+            <div id="info-produit-entree" style="display: none; background-color: #f0fff4; padding: 12px; margin-top: 10px; border-left: 4px solid #38a169; border-radius: 4px; font-size: 14px;">
+                <strong style="color: #276749;">Désignation :</strong> <span id="entree-designation-texte">-</span><br>
+                <strong style="color: #276749;">Localisation :</strong> <span id="entree-localisation-texte">-</span><br>
+                <strong style="color: #276749;">Stock actuel :</strong> <span id="entree-stock-texte">-</span>
+            </div>
+            <p id="erreur-produit-entree" style="display: none; color: #e53e3e; font-size: 14px; margin-top: 5px; font-weight: bold;">❌ Produit introuvable !</p>
+            
+            <label>Quantité à remettre en stock :</label>
+            <input type="number" id="entree-qty" value="1" min="1">
+            <label>Nom - Prénom :</label>
+            <input type="text" id="entree-nom" placeholder="Ex: Jean Dupont">
+            <label>Colonne (1 à 5) :</label>
+            <input type="number" id="entree-colonne" value="1" min="1" max="5">
+            <label>Justification de l'entrée :</label>
+            <input type="text" id="entree-justif" placeholder="Ex: Retour de chantier">
+            
+            <div class="modal-buttons">
+                <button class="btn-valider btn-entree-valider" onclick="validerEntree()">Valider entrée</button>
+                <button class="btn-fermer" onclick="fermerModalEntree()">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-nouveau" class="modal">
+        <div class="modal-content" style="border-top-color: #dd6b20;">
+            <h2 style="color: #dd6b20;">Ajouter un nouveau produit</h2>
+            <label>Code-barres :</label>
+            <input type="text" id="nouveau-code" placeholder="Ex: 501234">
+            <label>Désignation :</label>
+            <input type="text" id="nouveau-des" placeholder="Ex: GANTS DE PROTECTION">
+            <label>Quantité initiale :</label>
+            <input type="number" id="nouveau-qty" value="0" min="0">
+            <label>Seuil de sécurité (mini) :</label>
+            <input type="number" id="nouveau-seuil" value="5" min="0">
+            <label>Localisation :</label>
+            <input type="text" id="nouveau-loc" placeholder="Ex: ÉTAGÈRE B">
+            
+            <div class="modal-buttons">
+                <button class="btn-valider btn-nouveau-valider" onclick="validerNouveau()">Créer le produit</button>
+                <button class="btn-fermer" onclick="fermerModalNouveau()">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-supprimer" class="modal">
+        <div class="modal-content" style="border-top-color: #9b2c2c;">
+            <h2 style="color: #9b2c2c;">Supprimer un produit</h2>
+            <label>Code-barres du produit à supprimer (Puis Entrée) :</label>
+            <input type="text" id="supprimer-code" placeholder="Scanner ou taper le code...">
+            
+            <div id="info-produit-supprimer" style="display: none; background-color: #fff5f5; padding: 12px; margin-top: 10px; border-left: 4px solid #c53030; border-radius: 4px; font-size: 14px;">
+                <strong style="color: #9b2c2c;">Désignation :</strong> <span id="supprimer-designation-texte">-</span><br>
+                <strong style="color: #9b2c2c;">Stock actuel :</strong> <span id="supprimer-stock-texte">-</span>
+                <p style="color: #c53030; font-weight: bold; margin-top: 10px;">⚠️ Attention : Action irréversible !</p>
+            </div>
+            <p id="erreur-produit-supprimer" style="display: none; color: #e53e3e; font-size: 14px; margin-top: 5px; font-weight: bold;">❌ Produit introuvable !</p>
+            
+            <div class="modal-buttons">
+                <button class="btn-valider btn-supprimer-valider" id="btn-confirmer-suppression" onclick="validerSupprimer()" disabled>Supprimer définitivement</button>
+                <button class="btn-fermer" onclick="fermerModalSupprimer()">Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-commande" class="modal">
+        <div class="modal-content" style="width: 700px; border-top-color: #3182ce; max-height: 90vh; overflow-y: auto;">
+            <h2 style="color: #3182ce;">🖨️ Éditer le Bon de Commande</h2>
+            
+            <div style="display: flex; gap: 15px;">
+                <div style="flex: 1;">
+                    <label>N° de Commande :</label>
+                    <input type="text" id="cmd-num" placeholder="Ex: 2026-001">
+                </div>
+                <div style="flex: 1;">
+                    <label>Fournisseur (A) :</label>
+                    <input type="text" id="cmd-fournisseur" placeholder="Nom de l'entreprise">
+                </div>
+            </div>
+            <div style="display: flex; gap: 15px;">
+                <div style="flex: 1;">
+                    <label>Adresse du Fournisseur :</label>
+                    <input type="text" id="cmd-adresse" placeholder="12 Rue de l'industrie...">
+                </div>
+                <div style="flex: 1;">
+                    <label>Téléphone :</label>
+                    <input type="text" id="cmd-tel" placeholder="02.35...">
+                </div>
+            </div>
+            <div style="margin-top: 15px;">
+                <label>Adresse de livraison :</label>
+                <input type="text" id="cmd-livraison" placeholder="Ex: Magasin Central EDF Paluel...">
+            </div>
+
+            <hr style="margin: 25px 0; border: none; border-top: 2px dashed #ccc;">
+            
+            <h3 style="color: #2b6cb0; margin-top: 0;">📦 Articles à commander</h3>
+            <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Les alertes sont pré-remplies. <strong>Mettez 0 pour ignorer un article.</strong></p>
+            
+            <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                <thead>
+                    <tr style="background-color: #ebf8ff; color: #2b6cb0;">
+                        <th style="padding: 8px; text-align: left;">Code</th>
+                        <th style="padding: 8px; text-align: left;">Produit</th>
+                        <th style="padding: 8px; text-align: center;">En Stock</th>
+                        <th style="padding: 8px; text-align: center;">Qté à Cder</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-articles-commande">
+                    </tbody>
+            </table>
+
+            <div class="modal-buttons" style="position: sticky; bottom: -30px; background: white; padding-top: 20px;">
+                <button class="btn-valider btn-commande" onclick="validerImpressionCommande()">Générer le PDF</button>
+                <button class="btn-fermer" onclick="fermerModalCommande()">Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
