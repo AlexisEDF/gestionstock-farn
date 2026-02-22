@@ -1,17 +1,51 @@
 // ==========================================
-// --- 1. BASE DE DONNÉES ET SAUVEGARDE ---
+// --- 1. BASE DE DONNÉES FIREBASE (TEMPS RÉEL) ---
 // ==========================================
 
-let baseDeStock = JSON.parse(localStorage.getItem('farn_stock')) || [];
-let historiqueSorties = JSON.parse(localStorage.getItem('farn_sorties')) || [];
-let historiqueEntrees = JSON.parse(localStorage.getItem('farn_entrees')) || [];
-
-function sauvegarderDonnees() {
-    localStorage.setItem('farn_stock', JSON.stringify(baseDeStock));
-    localStorage.setItem('farn_sorties', JSON.stringify(historiqueSorties));
-    localStorage.setItem('farn_entrees', JSON.stringify(historiqueEntrees));
-}
-
+// 1. On donne les clés de la maison à l'ordinateur
+const firebaseConfig = {
+    apiKey: "AIzaSyCK0Mhu9aK0WUdYodmqwONJt7QuyEZwIJ8",
+    authDomain: "stock-farn.firebaseapp.com",
+    databaseURL: "https://stock-farn-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "stock-farn",
+    storageBucket: "stock-farn.firebasestorage.app",
+    messagingSenderId: "771346813248",
+    appId: "1:771346813248:web:27b7fd427d4a12f32aaaa5"
+  };
+  
+  // 2. On allume Firebase
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  
+  // 3. Nos variables de stock (vides au départ)
+  let baseDeStock = [];
+  let historiqueSorties = [];
+  let historiqueEntrees = [];
+  
+  // 4. 💡 LA MAGIE DU TEMPS RÉEL : On écoute la base de données !
+  // Dès que Firebase détecte un changement, il met à jour l'écran tout seul.
+  db.ref('farn_stock').on('value', (snapshot) => {
+      baseDeStock = snapshot.val() || [];
+      afficherTableau(); // On redessine le tableau
+  });
+  
+  db.ref('farn_sorties').on('value', (snapshot) => {
+      historiqueSorties = snapshot.val() || [];
+      afficherHistoriques();
+  });
+  
+  db.ref('farn_entrees').on('value', (snapshot) => {
+      historiqueEntrees = snapshot.val() || [];
+      afficherHistoriques();
+  });
+  
+  // 5. Fonction pour ENVOYER les données vers le Cloud (remplace le vieux localStorage)
+  function sauvegarderDonnees() {
+      db.ref('farn_stock').set(baseDeStock);
+      db.ref('farn_sorties').set(historiqueSorties);
+      db.ref('farn_entrees').set(historiqueEntrees);
+  }
+  
 // ==========================================
 // --- 2. AFFICHAGE DES TABLEAUX ET STATS ---
 // ==========================================
@@ -394,6 +428,85 @@ function validerImpressionCommande() {
     printWindow.document.close();
     setTimeout(() => { printWindow.print(); }, 500);
     fermerModalCommande();
+}
+
+
+// ==========================================
+// --- 9. MODIFIER PRODUIT (BLEU CLAIR) ---
+// ==========================================
+var modalModifier = document.getElementById('modal-modifier');
+var btnConfirmerModification = document.getElementById('btn-confirmer-modification');
+
+function ouvrirModalModifier() {
+    modalModifier.style.display = 'flex';
+    document.getElementById('modifier-code').value = "";
+    document.getElementById('formulaire-modifier').style.display = 'none';
+    document.getElementById('erreur-produit-modifier').style.display = 'none';
+    btnConfirmerModification.classList.remove('actif');
+    btnConfirmerModification.disabled = true;
+    setTimeout(() => document.getElementById('modifier-code').focus(), 100);
+}
+
+function fermerModalModifier() { 
+    modalModifier.style.display = 'none'; 
+}
+
+// Recherche du produit quand on tape "Entrée"
+document.getElementById('modifier-code').addEventListener('keypress', function(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault(); 
+        let produitTrouve = baseDeStock.find(item => item.code === this.value);
+        
+        if (produitTrouve) {
+            // On pré-remplit les cases avec les infos actuelles du produit !
+            document.getElementById('modifier-des').value = produitTrouve.des;
+            document.getElementById('modifier-seuil').value = produitTrouve.seuil;
+            document.getElementById('modifier-loc').value = produitTrouve.loc;
+            
+            document.getElementById('erreur-produit-modifier').style.display = 'none';
+            document.getElementById('formulaire-modifier').style.display = 'block';
+            btnConfirmerModification.classList.add('actif');
+            btnConfirmerModification.disabled = false;
+            document.getElementById('modifier-des').focus();
+        } else {
+            document.getElementById('formulaire-modifier').style.display = 'none';
+            document.getElementById('erreur-produit-modifier').style.display = 'block';
+            btnConfirmerModification.classList.remove('actif');
+            btnConfirmerModification.disabled = true;
+        }
+    }
+});
+
+// Sauvegarde des nouvelles informations
+function validerModifier() {
+    let codeSaisi = document.getElementById('modifier-code').value;
+    let index = baseDeStock.findIndex(item => item.code === codeSaisi);
+    
+    if (index !== -1) {
+        let nouvelleDes = document.getElementById('modifier-des').value.trim();
+        let nouveauSeuil = parseInt(document.getElementById('modifier-seuil').value);
+        let nouvelleLoc = document.getElementById('modifier-loc').value.trim();
+
+        if (nouvelleDes === "" || isNaN(nouveauSeuil) || nouveauSeuil < 0) {
+            alert("❌ Erreur : Informations invalides.");
+            return;
+        }
+
+        // 1. On met à jour la base de données
+        baseDeStock[index].des = nouvelleDes.toUpperCase();
+        baseDeStock[index].seuil = nouveauSeuil;
+        baseDeStock[index].loc = nouvelleLoc;
+
+        // 2. 💡 MAGIE : On corrige aussi le nom du produit dans les historiques passés !
+        historiqueEntrees.forEach(h => { if(h.code === codeSaisi) h.des = nouvelleDes.toUpperCase(); });
+        historiqueSorties.forEach(h => { if(h.code === codeSaisi) h.des = nouvelleDes.toUpperCase(); });
+
+        // 3. On sauvegarde et on rafraîchit
+        sauvegarderDonnees(); 
+        afficherTableau();
+        afficherHistoriques();
+        fermerModalModifier();
+    }
 }
 
 // ==========================================

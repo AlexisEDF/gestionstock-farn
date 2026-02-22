@@ -23,6 +23,14 @@ h1 { color: #06387a; text-align: center; text-transform: uppercase; }
 .btn-commande { background-color: #3182ce; } 
 .btn-commande:hover { background-color: #2b6cb0; }
 
+/* --- NOUVEAU : BOUTON MODIFIER --- */
+.btn-modifier { background-color: hsl(276, 83%, 72%); } /* Bleu clair */
+.btn-modifier:hover { background-color: hsl(276, 83%, 72%); }
+.btn-modifier-valider { background-color: hsl(276, 83%, 72%); cursor: not-allowed; opacity: 0.5; }
+.btn-modifier-valider.actif { cursor: pointer; opacity: 1; }
+.btn-modifier-valider.actif:hover { background-color: hsl(276, 83%, 72%); }
+
+
 /* --- TABLEAU DE STOCK PRINCIPAL --- */
 table { width: 100%; max-width: 1000px; margin: 0 auto; border-collapse: collapse; background: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
 th, td { padding: 12px 15px; text-align: center; border-bottom: 1px solid #ddd; }

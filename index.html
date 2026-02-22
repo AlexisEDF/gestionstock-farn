@@ -33,6 +33,7 @@
         <button class="btn btn-entree" onclick="ouvrirModalEntree()">ENTRÉE DE STOCK</button>
         <button class="btn btn-nouveau" onclick="ouvrirModalNouveau()">+ NOUVEAU PRODUIT</button>
         <button class="btn btn-supprimer" onclick="ouvrirModalSupprimer()">- SUPPRIMER PRODUIT</button>
+        <button class="btn btn-modifier" onclick="ouvrirModalModifier()">✏️ MODIFIER PRODUIT</button>
         <button class="btn btn-commande" onclick="ouvrirModalCommande()">🖨️ BON DE COMMANDE</button>
     </div>
 
@@ -192,6 +193,37 @@
         </div>
     </div>
 
+
+    <div id="modal-modifier" class="modal">
+        <div class="modal-content" style="border-top-color: #3182ce;">
+            <h2 style="color: #3182ce;">Modifier un produit</h2>
+            <label>Code-barres du produit (Puis Entrée) :</label>
+            <input type="text" id="modifier-code" placeholder="Scanner ou taper le code...">
+            
+            <p id="erreur-produit-modifier" style="display: none; color: #e53e3e; font-size: 14px; margin-top: 5px; font-weight: bold;">❌ Produit introuvable !</p>
+            
+            <div id="formulaire-modifier" style="display: none; margin-top: 15px;">
+                <label>Nouvelle Désignation :</label>
+                <input type="text" id="modifier-des">
+                
+                <label>Nouveau Seuil de sécurité :</label>
+                <input type="number" id="modifier-seuil" min="0">
+                
+                <label>Nouvelle Localisation :</label>
+                <input type="text" id="modifier-loc">
+                
+                <p style="font-size: 12px; color: #666; margin-top: 10px; text-align: center;">💡 Note : Pour modifier la quantité, utilisez les boutons d'Entrée ou de Sortie.</p>
+            </div>
+            
+            <div class="modal-buttons">
+                <button class="btn-valider btn-modifier-valider" id="btn-confirmer-modification" onclick="validerModifier()" disabled>Enregistrer</button>
+                <button class="btn-fermer" onclick="fermerModalModifier()">Annuler</button>
+            </div>
+        </div>
+    </div>
+
+
+
     <div id="modal-commande" class="modal">
         <div class="modal-content" style="width: 700px; border-top-color: #3182ce; max-height: 90vh; overflow-y: auto;">
             <h2 style="color: #3182ce;">🖨️ Éditer le Bon de Commande</h2>
@@ -245,6 +277,9 @@
             </div>
         </div>
     </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <script src="script.js"></script>
 </body>
