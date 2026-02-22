@@ -3,7 +3,7 @@ const urlsToCache = [
     './index.html',
     './style.css',
     './script.js',
-    './logo-edf.png'
+    './logoapp.png'
 ];
 
 // Installation : on met les fichiers en mémoire cache
