@@ -8,73 +8,66 @@ if ('serviceWorker' in navigator) {
 }
 
 // ==========================================
-// --- 1. FIREBASE & AUTHENTIFICATION ---
+// --- 1. SYSTÈME DE SÉCURITÉ (HORS-LIGNE) ---
 // ==========================================
-const firebaseConfig = {
-    apiKey: "AIzaSyCK0Mhu9aK0WUdYodmqwONJt7QuyEZwIJ8",
-    authDomain: "stock-farn.firebaseapp.com",
-    databaseURL: "https://stock-farn-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "stock-farn",
-    storageBucket: "stock-farn.firebasestorage.app",
-    messagingSenderId: "771346813248",
-    appId: "1:771346813248:web:27b7fd427d4a12f32aaaa5"
+
+// Vérifie si on est déjà connecté lors du chargement de la page
+window.onload = () => {
+    // Si on a le badge "connecté" dans la mémoire de la session
+    if (sessionStorage.getItem('farn_connecte') === 'oui') {
+        document.getElementById('ecran-connexion').style.display = 'none';
+        chargerLesDonnees(); // On charge les vraies données
+    } else {
+        document.getElementById('ecran-connexion').style.display = 'flex';
+    }
 };
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-const auth = firebase.auth();
+// Fonction déclenchée par le bouton "SE CONNECTER"
+function seConnecter() {
+    let pseudo = document.getElementById('login-username').value.trim().toLowerCase();
+    let mdp = document.getElementById('login-mdp').value;
 
+    // 💡 IDENTIFIANTS LOCAUX (Modifiables ici)
+    if ((pseudo === 'alexis' || pseudo === 'admin') && mdp === 'Farn2026!') {
+        // Succès : On met le badge "connecté" dans la session
+        sessionStorage.setItem('farn_connecte', 'oui');
+        document.getElementById('ecran-connexion').style.display = 'none';
+        chargerLesDonnees();
+    } else {
+        // Échec
+        document.getElementById('erreur-connexion').style.display = 'block';
+    }
+}
+
+// Bouton de déconnexion
+function seDeconnecter() {
+    sessionStorage.removeItem('farn_connecte'); // On déchire le badge
+    window.location.reload(); // On rafraîchit la page pour remettre l'écran bleu
+}
+
+// ==========================================
+// --- 2. GESTION DES DONNÉES (LOCALSTORAGE) ---
+// ==========================================
 let baseDeStock = [];
 let historiqueSorties = [];
 let historiqueEntrees = [];
 
-// Le vigile de sécurité
-auth.onAuthStateChanged((user) => {
-    if (user) {
-        document.getElementById('ecran-connexion').style.display = 'none';
-        chargerLesDonneesDepuisLeCloud();
-    } else {
-        document.getElementById('ecran-connexion').style.display = 'flex';
-    }
-});
-
-function seConnecter() {
-    let pseudoSaisi = document.getElementById('login-username').value.trim();
-    let mdp = document.getElementById('login-mdp').value;
-    let fauxEmailFirebase = pseudoSaisi + "@farn.fr"; // L'astuce magique !
-    
-    auth.signInWithEmailAndPassword(fauxEmailFirebase, mdp)
-        .catch((error) => {
-            document.getElementById('erreur-connexion').style.display = 'block';
-        });
+// Charger depuis la mémoire de l'ordinateur
+function chargerLesDonnees() {
+    baseDeStock = JSON.parse(localStorage.getItem('farn_stock')) || [];
+    historiqueSorties = JSON.parse(localStorage.getItem('farn_sorties')) || [];
+    historiqueEntrees = JSON.parse(localStorage.getItem('farn_entrees')) || [];
+    afficherTableau();
+    afficherHistoriques();
 }
 
-function seDeconnecter() {
-    auth.signOut().then(() => window.location.reload());
-}
-
-// ==========================================
-// --- 2. BASE DE DONNÉES EN TEMPS RÉEL ---
-// ==========================================
-function chargerLesDonneesDepuisLeCloud() {
-    db.ref('farn_stock').on('value', (snapshot) => {
-        baseDeStock = snapshot.val() || [];
-        afficherTableau(); 
-    });
-    db.ref('farn_sorties').on('value', (snapshot) => {
-        historiqueSorties = snapshot.val() || [];
-        afficherHistoriques();
-    });
-    db.ref('farn_entrees').on('value', (snapshot) => {
-        historiqueEntrees = snapshot.val() || [];
-        afficherHistoriques();
-    });
-}
-
+// Sauvegarder dans la mémoire de l'ordinateur
 function sauvegarderDonnees() {
-    db.ref('farn_stock').set(baseDeStock);
-    db.ref('farn_sorties').set(historiqueSorties);
-    db.ref('farn_entrees').set(historiqueEntrees);
+    localStorage.setItem('farn_stock', JSON.stringify(baseDeStock));
+    localStorage.setItem('farn_sorties', JSON.stringify(historiqueSorties));
+    localStorage.setItem('farn_entrees', JSON.stringify(historiqueEntrees));
+    afficherTableau();
+    afficherHistoriques();
 }
 
 // ==========================================
